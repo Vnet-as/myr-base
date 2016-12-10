@@ -18,7 +18,7 @@ def get_function_spec(callable):
 
 def announce_task(self):
     """Celery task for announcing user tasks to discovery service"""
-    all_tasks = self.tasks.regular()
+    all_tasks = self.app.tasks.regular()
     user_tasks = {}
     for t in all_tasks:
         if t.startswith('celery.'):
@@ -27,9 +27,9 @@ def announce_task(self):
             continue
         user_tasks[t] = {
             'signature': get_function_spec(all_tasks[t].run)._asdict(),
-            'routing': {'queue': list(self.amqp.queues.keys())[0]}
+            'routing': {'queue': list(self.app.amqp.queues.keys())[0]}
         }
-    self.send_task(ENV.get('MYR_ANNOUNCE_TASK'),
+    self.app.send_task(ENV.get('MYR_ANNOUNCE_TASK'),
                    args=[user_tasks],
                    queue=ENV.get('MYR_ANNOUNCE_QUEUE'))
 
