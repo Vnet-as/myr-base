@@ -16,6 +16,25 @@ def get_function_spec(callable):
     return inspect.getargspec(callable)
 
 
+def get_task_routing(celery_app, task_name):
+    router = celery_app.amqp.Router()
+    route = router.route({}, task_name)
+    route = {
+        'queue': route['queue'].name,
+        'exchange': route['queue'].exchange.name,
+        'routing_key': route['queue'].routing_key
+    }
+    task_routing = {
+        k: getattr(route['queue'], k)
+        for k in ['exchange', 'routing_key']
+        if hasattr(route['queue'], k)
+    }
+    route.update(task_routing)
+    if route['exchange'] == route['queue']:
+        del route['exchange']
+    return route
+
+
 def announce(self):
     """Celery task for announcing user tasks to discovery service"""
     all_tasks = self.app.tasks.regular()
@@ -25,9 +44,9 @@ def announce(self):
             continue
         if task == 'myr.base.app.announce':
             continue
-            'routing': {'queue': list(self.app.amqp.queues.keys())[0]}
         user_tasks[task] = {
             'signature': get_function_spec(all_tasks[task].run)._asdict(),
+            'routing': get_task_routing(self.app, task)
         }
     self.app.send_task(ENV.get('MYR_ANNOUNCE_TASK'),
                    args=[user_tasks],
