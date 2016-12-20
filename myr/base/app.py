@@ -19,15 +19,15 @@ def get_function_spec(callable):
 def get_task_routing(celery_app, task_name):
     router = celery_app.amqp.Router()
     route = router.route({}, task_name)
+    task_routing = {
+        k: route[k]
+        for k in ['exchange', 'routing_key']
+        if k in route
+    }
     route = {
         'queue': route['queue'].name,
         'exchange': route['queue'].exchange.name,
         'routing_key': route['queue'].routing_key
-    }
-    task_routing = {
-        k: getattr(route['queue'], k)
-        for k in ['exchange', 'routing_key']
-        if hasattr(route['queue'], k)
     }
     route.update(task_routing)
     if route['exchange'] == route['queue']:
