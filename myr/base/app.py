@@ -16,18 +16,18 @@ def get_function_spec(callable):
     return inspect.getargspec(callable)
 
 
-def announce_task(self):
+def announce(self):
     """Celery task for announcing user tasks to discovery service"""
     all_tasks = self.app.tasks.regular()
     user_tasks = {}
-    for t in all_tasks:
-        if t.startswith('celery.'):
+    for task in all_tasks:
+        if task.startswith('celery.'):
             continue
-        if t == 'myr.base.app.announce_task':
+        if task == 'myr.base.app.announce':
             continue
-        user_tasks[t] = {
-            'signature': get_function_spec(all_tasks[t].run)._asdict(),
             'routing': {'queue': list(self.app.amqp.queues.keys())[0]}
+        user_tasks[task] = {
+            'signature': get_function_spec(all_tasks[task].run)._asdict(),
         }
     self.app.send_task(ENV.get('MYR_ANNOUNCE_TASK'),
                    args=[user_tasks],
@@ -36,10 +36,10 @@ def announce_task(self):
 
 class MyrApp(celery.Celery):
     def on_init(self):
-        self._tasks.register(self.task(announce_task, bind=True))
+        self._tasks.register(self.task(announce, bind=True))
         self.conf.beat_schedule = {
-            'announce_task': {
-                'task': 'myr.base.app.announce_task',
+            'announce': {
+                'task': 'myr.base.app.announce',
                 'schedule': ENV.get('MYR_ANNOUNCE_INTERVAL')
             }
         }
