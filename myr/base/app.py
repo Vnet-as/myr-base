@@ -49,7 +49,8 @@ def announce(self):
 
 class MyrApp(celery.Celery):
     def on_init(self):
-        queue_name = '{name}.tasks'.format(name=self.main)
+        queue_name = '{name}.tasks'.format(name=(
+            self.main or __package__.split('.', 1)[0]))
         self.amqp.queues.select_add(queue_name)
         self.conf.task_default_queue = queue_name
 
@@ -66,4 +67,4 @@ class MyrApp(celery.Celery):
         }
 
     def gen_task_name(self, name, module):
-        return '{}.{}'.format(self.main, name)
+        return '{}.{}'.format(self.main or __package__.split('.', 1)[0], name)
