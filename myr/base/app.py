@@ -49,7 +49,8 @@ def announce(self):
 
 class MyrApp(celery.Celery):
     def on_init(self):
-        self._tasks.register(self.task(announce, bind=True))
+        self._tasks.register(self.task(announce,
+            name='myr.base.app.announce', bind=True, ignore_result=True))
         self.conf.beat_schedule = {
             'announce': {
                 'task': 'myr.base.app.announce',
