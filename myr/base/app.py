@@ -5,8 +5,8 @@ import os
 
 ENV = {
     'MYR_ANNOUNCE_TASK': 'myr.discovery.announce',
-    'MYR_ANNOUNCE_QUEUE': 'announce',
-    'MYR_ANNOUNCE_INTERVAL': 2.0
+    'MYR_ANNOUNCE_QUEUE': '_myr_discovery_',
+    'MYR_ANNOUNCE_INTERVAL': 5.0
 }
 ENV.update(os.environ)
 
