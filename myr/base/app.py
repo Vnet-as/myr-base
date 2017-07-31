@@ -56,3 +56,6 @@ class MyrApp(celery.Celery):
                 'schedule': ENV.get('MYR_ANNOUNCE_INTERVAL')
             }
         }
+
+    def gen_task_name(self, name, module):
+        return '{}.{}'.format(self.main, name)
