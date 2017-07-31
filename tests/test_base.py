@@ -38,7 +38,11 @@ class TestApp:
         tasks_spec = {
             test_task.name: {
                 'signature': get_function_spec(test_task.run)._asdict(),
-                'routing': {'queue': 'celery', 'routing_key': 'celery'}
+                'routing': {
+                    'queue': 'myr.tasks',
+                    'routing_key': 'myr.tasks',
+                    'exchange': ''
+                }
             }
         }
         app.send_task.assert_called_with(
