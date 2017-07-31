@@ -58,7 +58,10 @@ class MyrApp(celery.Celery):
         self.conf.beat_schedule = {
             'announce': {
                 'task': 'myr.base.app.announce',
-                'schedule': ENV.get('MYR_ANNOUNCE_INTERVAL')
+                'schedule': ENV.get('MYR_ANNOUNCE_INTERVAL'),
+                'options': {
+                    'queue': queue_name
+                }
             }
         }
 
