@@ -49,6 +49,10 @@ def announce(self):
 
 class MyrApp(celery.Celery):
     def on_init(self):
+        queue_name = '{name}.tasks'.format(name=self.main)
+        self.amqp.queues.select_add(queue_name)
+        self.conf.task_default_queue = queue_name
+
         self._tasks.register(self.task(announce,
             name='myr.base.app.announce', bind=True, ignore_result=True))
         self.conf.beat_schedule = {
