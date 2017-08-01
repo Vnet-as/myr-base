@@ -5,8 +5,8 @@ import os
 
 ENV = {
     'MYR_ANNOUNCE_TASK': 'myr.discovery.announce',
-    'MYR_ANNOUNCE_QUEUE': 'announce',
-    'MYR_ANNOUNCE_INTERVAL': 2.0
+    'MYR_ANNOUNCE_QUEUE': '_myr_discovery_',
+    'MYR_ANNOUNCE_INTERVAL': 5.0
 }
 ENV.update(os.environ)
 
@@ -49,10 +49,22 @@ def announce(self):
 
 class MyrApp(celery.Celery):
     def on_init(self):
-        self._tasks.register(self.task(announce, bind=True))
+        queue_name = '{name}.tasks'.format(name=(
+            self.main or __package__.split('.', 1)[0]))
+        self.amqp.queues.select_add(queue_name)
+        self.conf.task_default_queue = queue_name
+
+        self._tasks.register(self.task(announce,
+            name='myr.base.app.announce', bind=True, ignore_result=True))
         self.conf.beat_schedule = {
             'announce': {
                 'task': 'myr.base.app.announce',
-                'schedule': ENV.get('MYR_ANNOUNCE_INTERVAL')
+                'schedule': ENV.get('MYR_ANNOUNCE_INTERVAL'),
+                'options': {
+                    'queue': queue_name
+                }
             }
         }
+
+    def gen_task_name(self, name, module):
+        return '{}.{}'.format(self.main or __package__.split('.', 1)[0], name)
