@@ -13,7 +13,10 @@ ENV.update(os.environ)
 
 def get_function_spec(callable):
     """Returns function (callable) argspec"""
-    return inspect.getargspec(callable)
+    spec = inspect.getfullargspec(callable)
+    if spec.args and spec.args[0] == 'self':
+        del spec.args[0]
+    return spec
 
 
 def get_task_routing(celery_app, task_name):
